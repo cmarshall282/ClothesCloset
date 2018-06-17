@@ -1,9 +1,10 @@
 package com.clothescloset.signin;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -104,7 +105,7 @@ public class Main {
 
             if(choice == 1) {
                 //export files
-
+                export();
             } else if(choice == 2) {
                 //add a volunteer
                 addVolunteer();
@@ -113,7 +114,6 @@ public class Main {
                 addPatron();
             } else if(choice == 4) {
                 //exit program
-                System.out.println("Exit");
                 exit();
             }
         }
@@ -129,7 +129,7 @@ public class Main {
 
         while(true) {
             if(new File(fileName).exists()) {
-                fileName = fileName = "/home/chris/IdeaProjects/ClothesCloset/src/com/clothescloset/signin/VolunteerOutput_" + dateFormat.format(date) + "_" + counter + ".txt";
+                fileName = "/home/chris/IdeaProjects/ClothesCloset/src/com/clothescloset/signin/Output_" + dateFormat.format(date) + "_" + counter + ".txt";
                 counter++;
             } else break;
         }
@@ -199,11 +199,11 @@ public class Main {
 
     //Add a person
     private static void addVolunteer() {
-        //set up method input variables
         Scanner fileInput;
         //the size will be the current volunteer number times three plus an additional three since we are adding a volunteer
         String[] lines = new String[volunteers.size() * 3 + 3];
 
+        //read
         try {
             fileInput = new Scanner(volunteerInput);
 
@@ -225,13 +225,12 @@ public class Main {
                 else lines[i] = "Error";
             }
 
-            //close scanners
             fileInput.close();
         } catch(IOException e) {
             e.printStackTrace();
         }
 
-        //write lines to input file
+        //write
         PrintWriter inputWriter;
 
         try {
@@ -241,7 +240,6 @@ public class Main {
                 inputWriter.println(lines[i]);
             }
 
-            //flush and close print writer
             inputWriter.flush();
             inputWriter.close();
         } catch(IOException e) {
@@ -252,11 +250,11 @@ public class Main {
     }
 
     private static void addPatron() {
-        //set up method input variables
         Scanner fileInput;
         //the size will be the current patron number times three plus an additional three since we are adding a patron
         String[] lines = new String[volunteers.size() * 3];
 
+        //read
         try {
             fileInput = new Scanner(patronInput);
 
@@ -283,7 +281,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        //write lines to input file
+        //write
         PrintWriter inputWriter;
 
         try {
@@ -344,7 +342,6 @@ public class Main {
                 inputWriter.println(lines[i]);
             }
 
-            //flush and close print writer
             inputWriter.flush();
             inputWriter.close();
         } catch(IOException e) {
@@ -352,8 +349,7 @@ public class Main {
         }
     }
 
-    //Cleans up open processes and exits
-    private static void exit() {
+    private static void signOutAll() {
         for(int i = 0; i < volunteers.size(); i++) {
             Volunteer volunteer = volunteers.get(i);
             if(volunteer.signedIn) {
@@ -377,6 +373,50 @@ public class Main {
         }
 
         outputWriter.close();
+    }
+
+    //This function exports all output files to an inserted drive and then exits
+    private static void export() {
+        System.out.println("Exporting");
+
+        File newDir = new File("/home/chris/OutputTest");
+        System.out.println(newDir.getAbsolutePath());
+
+        signOutAll();
+
+        if(newDir.exists()) {
+            System.out.println("IF");
+            File currentDir = new File("/home/chris/IdeaProjects/ClothesCloset/src/com/clothescloset/signin/");
+
+            File[] outputFiles = currentDir.listFiles((dir, name) -> {
+                if(name.startsWith("Output")) return true;
+                return false;
+            });
+
+            for(File file: outputFiles) {
+                try {
+                    System.out.println("Exporting " + file.getName());
+
+                    Path source = Paths.get(file.getAbsolutePath());
+                    Path target = Paths.get(newDir.getAbsolutePath() + "/" + file.getName());
+
+                    Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+                } catch(IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            System.out.println("No drive found");
+        }
+
+        System.exit(0);
+    }
+
+    //Cleans up open processes and exits
+    private static void exit() {
+        signOutAll();
+
+        System.out.println("Exiting");
         System.exit(0);
     }
 }
