@@ -338,8 +338,7 @@ public class Main {
     }
 
     private static void signOutAll() {
-        for(int i = 0; i < volunteers.size(); i++) {
-            Volunteer volunteer = volunteers.get(i);
+        for(Volunteer volunteer : volunteers) {
             if(volunteer.signedIn) {
                 //sign out
                 volunteer.signOut();
@@ -354,8 +353,37 @@ public class Main {
                 outputWriter.flush();
             }
         }
-        
+
+        outputWriter.println(totalPatrons + " patrons visited.");
+
         outputWriter.close();
+    }
+
+    private static void createReport() {
+        try {
+            String fileName = "/home/chris/IdeaProjects/ClothesCloset/src/com/clothescloset/signin/Report.txt";
+            int counter = 1;
+
+            while(true) {
+                if(newFile(fileName).exists()) {
+                    fileName = "/home/chris/IdeaProjects/ClothesCloset/src/com/clothescloset/signin/Report_" + counter + ".txt";
+                    counter++;
+                } else break;
+            }
+
+            File reportFile = new File(fileName);
+            OutputWriter reportWriter =  new OutputWriter(reportFile);
+
+            for(Volunteer volunteer : volunteers) {
+                volunteer.totalTime = new VolunteerTime(volunteer.totalSeconds);
+                reportWriter.println(volunteer.name + " has worked a total of " + volunteer.totalTime.format());
+                reportWriter.println();
+            }
+
+            reportWriter.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     //This function exports all output files to an inserted drive and then exits
@@ -366,6 +394,7 @@ public class Main {
         System.out.println(newDir.getAbsolutePath());
 
         signOutAll();
+        createReport();
 
         if(newDir.exists()) {
             System.out.println("IF");
@@ -376,7 +405,25 @@ public class Main {
                 return false;
             });
 
-            for(File file: outputFiles) {
+            for(File file : outputFiles) {
+                try {
+                    System.out.println("Exporting " + file.getName());
+
+                    Path source = Paths.get(file.getAbsolutePath());
+                    Path target = Paths.get(newDir.getAbsolutePath() + "/" + file.getName());
+
+                    Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+                } catch(IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            File[] reports = currentDir.listFiles((dir, name) -> {
+                if(name.startsWith("Report")) return true;
+                else return false;
+            });
+
+            for(File file : reports) {
                 try {
                     System.out.println("Exporting " + file.getName());
 
