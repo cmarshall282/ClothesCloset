@@ -58,18 +58,11 @@ public class Main {
                 Volunteer volunteer = volunteers.get(i);
                 if(volunteer.id == choice) {
                     if(!volunteer.signedIn) {
-                        volunteer.startTime = System.currentTimeMillis();
-                        volunteer.signedIn = true;
-
-                        System.out.println(volunteer.name + " has signed in.");
-                        System.out.println();
+                        volunteer.signIn();
                     } else {
-                        //calculate time worked
-                        volunteer.endTime = System.currentTimeMillis();
-                        volunteer.sessionSeconds = (int) (volunteer.endTime - volunteer.startTime) / 1000;
-                        totalTime += volunteer.sessionSeconds;
-                        volunteer.totalSeconds += volunteer.sessionSeconds;
-                        volunteer.sessionTime = new VolunteerTime(volunteer.sessionSeconds);
+                        //sign out
+                        volunteer.signOut();
+                        totalTime += volunteer.sessionSeconds();
 
                         //update input for individual total time
                         replaceLine((i + 1) * 3, volunteer.totalSeconds + "");
@@ -79,11 +72,6 @@ public class Main {
                         outputWriter.println("Total time worked is " + new VolunteerTime(totalTime).format());
                         outputWriter.println();
                         outputWriter.flush();
-
-                        volunteer.signedIn = false;
-
-                        System.out.println(volunteer.name + " has signed out.");
-                        System.out.println();
                     }
                 }
             }
@@ -353,11 +341,8 @@ public class Main {
         for(int i = 0; i < volunteers.size(); i++) {
             Volunteer volunteer = volunteers.get(i);
             if(volunteer.signedIn) {
-                volunteer.endTime = System.currentTimeMillis();
-                volunteer.sessionSeconds = (int) (volunteer.endTime - volunteer.startTime) / 1000;
-                totalTime += volunteer.sessionSeconds;
-                volunteer.totalSeconds += volunteer.sessionSeconds;
-                volunteer.sessionTime = new VolunteerTime(volunteer.sessionSeconds);
+                //sign out
+                volunteer.signOut();
 
                 //update input for individual total time
                 replaceLine((i + 1) * 3, volunteer.totalSeconds + "");
@@ -367,11 +352,9 @@ public class Main {
                 outputWriter.println("Total time worked is " + new VolunteerTime(totalTime).format());
                 outputWriter.println();
                 outputWriter.flush();
-
-                volunteer.signedIn = false;
             }
         }
-
+        
         outputWriter.close();
     }
 

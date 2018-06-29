@@ -19,4 +19,24 @@ public class Volunteer {
         this.name = name;
         this.totalSeconds = totalSeconds;
     }
+
+    protected void signIn() {
+        startTime = System.currentTimeMillis();
+        signedIn = true;
+
+        System.out.println(name + " has signed in.");
+        System.out.println();
+    }
+
+    protected void signOut() {
+        endTime = System.currentTimeMillis();
+        sessionSeconds = (int) (endTime - startTime) / 1000;
+        totalSeconds += sessionSeconds;
+        sessionTime = new VolunteerTime(sessionSeconds);
+
+        signedIn = false;
+
+        System.out.println(name + " has signed out.");
+        System.out.println();
+    }
 }
