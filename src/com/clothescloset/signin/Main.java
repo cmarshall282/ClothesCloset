@@ -34,7 +34,7 @@ public class Main {
         setup();
 
         //write date to new output file
-        outputWriter.println("Volunteer information for " + dateFormat.format(date));
+        outputWriter.println("Clothes Closet information for " + dateFormat.format(date));
         outputWriter.flush();
 
         //read volunteer information out of input file
@@ -62,7 +62,7 @@ public class Main {
                     } else {
                         //sign out
                         volunteer.signOut();
-                        totalTime += volunteer.sessionSeconds();
+                        totalTime += volunteer.sessionSeconds;
 
                         //update input for individual total time
                         replaceLine((i + 1) * 3, volunteer.totalSeconds + "");
@@ -76,13 +76,11 @@ public class Main {
                 }
             }
 
-            for(int i = 0; i < patrons.size(); i++) {
-                Patron patron = patrons.get(i);
+            for(Patron patron : patrons) {
                 if(patron.id == choice) {
                     totalPatrons++;
 
                     outputWriter.println(patron.name + " visited and has a family of " + patron.familySize);
-                    outputWriter.println("The total number of patrons today is " + totalPatrons);
                     outputWriter.println();
                     outputWriter.flush();
 
@@ -224,8 +222,8 @@ public class Main {
         try {
             inputWriter = new PrintWriter(volunteerInput);
 
-            for(int i = 0; i < lines.length; i++) {
-                inputWriter.println(lines[i]);
+            for(String line : lines) {
+                inputWriter.println(line);
             }
 
             inputWriter.flush();
@@ -275,8 +273,8 @@ public class Main {
         try {
             inputWriter = new PrintWriter(patronInput);
 
-            for(int i = 0; i < lines.length; i++) {
-                inputWriter.println(lines[i]);
+            for(String line : lines) {
+                inputWriter.println(line);
             }
 
             //flush and close print writer
@@ -302,7 +300,7 @@ public class Main {
         return i;
     }
 
-    private static void replaceLine(int lineNumber, String line) {
+    private static void replaceLine(int lineNumber, String replacementLine) {
         Scanner fileInput;
         String[] lines = new String[volunteers.size() * 3];
 
@@ -311,7 +309,7 @@ public class Main {
 
             for(int i = 1; i < lines.length + 1; i++) {
                 if(i == lineNumber) {
-                    lines[i - 1] = line;
+                    lines[i - 1] = replacementLine;
                     //advance past skipped line
                     fileInput.nextLine();
                 } else lines[i - 1] = fileInput.nextLine();
@@ -326,8 +324,8 @@ public class Main {
         try {
             inputWriter = new PrintWriter(volunteerInput);
 
-            for(int i = 0; i < lines.length; i++) {
-                inputWriter.println(lines[i]);
+            for(String line : lines) {
+                inputWriter.println(line);
             }
 
             inputWriter.flush();
@@ -338,7 +336,8 @@ public class Main {
     }
 
     private static void signOutAll() {
-        for(Volunteer volunteer : volunteers) {
+        for(int i = 0; i < volunteers.size(); i++) {
+            Volunteer volunteer = volunteers.get(i);
             if(volunteer.signedIn) {
                 //sign out
                 volunteer.signOut();
@@ -359,34 +358,7 @@ public class Main {
         outputWriter.close();
     }
 
-    private static void createReport() {
-        try {
-            String fileName = "/home/chris/IdeaProjects/ClothesCloset/src/com/clothescloset/signin/Report.txt";
-            int counter = 1;
-
-            while(true) {
-                if(newFile(fileName).exists()) {
-                    fileName = "/home/chris/IdeaProjects/ClothesCloset/src/com/clothescloset/signin/Report_" + counter + ".txt";
-                    counter++;
-                } else break;
-            }
-
-            File reportFile = new File(fileName);
-            OutputWriter reportWriter =  new OutputWriter(reportFile);
-
-            for(Volunteer volunteer : volunteers) {
-                volunteer.totalTime = new VolunteerTime(volunteer.totalSeconds);
-                reportWriter.println(volunteer.name + " has worked a total of " + volunteer.totalTime.format());
-                reportWriter.println();
-            }
-
-            reportWriter.close();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    //This function exports all output files to an inserted drive and then exits
+    //Exporting functions
     private static void export() {
         System.out.println("Exporting");
 
@@ -401,8 +373,7 @@ public class Main {
             File currentDir = new File("/home/chris/IdeaProjects/ClothesCloset/src/com/clothescloset/signin/");
 
             File[] outputFiles = currentDir.listFiles((dir, name) -> {
-                if(name.startsWith("Output")) return true;
-                return false;
+                return name.startsWith("Output");
             });
 
             for(File file : outputFiles) {
@@ -419,8 +390,7 @@ public class Main {
             }
 
             File[] reports = currentDir.listFiles((dir, name) -> {
-                if(name.startsWith("Report")) return true;
-                else return false;
+                return name.startsWith("Report");
             });
 
             for(File file : reports) {
@@ -440,6 +410,34 @@ public class Main {
         }
 
         System.exit(0);
+    }
+
+    private static void createReport() {
+        try {
+            String fileName = "/home/chris/IdeaProjects/ClothesCloset/src/com/clothescloset/signin/Report.txt";
+            int counter = 1;
+
+            while(true) {
+                if(new File(fileName).exists()) {
+                    fileName = "/home/chris/IdeaProjects/ClothesCloset/src/com/clothescloset/signin/Report_" + counter + ".txt";
+                    counter++;
+                } else break;
+            }
+
+            File reportFile = new File(fileName);
+            PrintWriter reportWriter =  new PrintWriter(reportFile);
+
+            for(Volunteer volunteer : volunteers) {
+                volunteer.totalTime = new VolunteerTime(volunteer.totalSeconds);
+                reportWriter.println(volunteer.name + " has worked a total of " + volunteer.totalTime.format());
+                reportWriter.println();
+                reportWriter.flush();
+            }
+
+            reportWriter.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     //Cleans up open processes and exits
